@@ -29,7 +29,7 @@ if (process.env.NODE_ENV === 'production') {
 
 async function seedAdmin() {
   const row = await queryOne("SELECT COUNT(*) as count FROM staff WHERE role = 'admin'");
-  if (row.count === 0) {
+  if (Number(row.count) === 0) {
     const hash = await bcrypt.hash('admin123', 10);
     await run("INSERT INTO staff (name, login_id, password_hash, role) VALUES (?, ?, ?, ?)",
       ['管理者', 'admin', hash, 'admin']);
