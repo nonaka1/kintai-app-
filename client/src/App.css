@@ -1,0 +1,556 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  min-height: 100vh;
+}
+
+/* Header */
+.header {
+  background: #1a1a2e;
+  color: #fff;
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.header-nav {
+  display: flex;
+  gap: 16px;
+}
+
+.header-nav a {
+  color: #a0a0c0;
+  text-decoration: none;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.header-nav a:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-user {
+  font-size: 13px;
+  color: #a0a0c0;
+}
+
+/* Buttons */
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #4361ee;
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #3a56d4;
+}
+
+.btn-danger {
+  background: #e63946;
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c5303c;
+}
+
+.btn-logout {
+  background: transparent;
+  color: #a0a0c0;
+  border: 1px solid #a0a0c0;
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.btn-logout:hover {
+  color: #fff;
+  border-color: #fff;
+}
+
+.btn-sm {
+  padding: 4px 12px;
+  font-size: 13px;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: #444;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #4361ee;
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+}
+
+/* Messages */
+.error-msg {
+  background: #fde8e8;
+  color: #c5303c;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.success-msg {
+  background: #d4edda;
+  color: #155724;
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+/* Main */
+.main {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+/* Login */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px);
+}
+
+.login-card {
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  max-width: 380px;
+}
+
+.login-card h1 {
+  text-align: center;
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: #888;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+/* Stamp Page */
+.stamp-container {
+  display: flex;
+  justify-content: center;
+  padding-top: 40px;
+}
+
+.stamp-card {
+  background: #fff;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  width: 100%;
+  max-width: 480px;
+}
+
+.stamp-greeting {
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.stamp-date {
+  font-size: 15px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.stamp-time {
+  font-size: 56px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.stamp-status {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 32px;
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.status-label {
+  font-size: 13px;
+  color: #888;
+}
+
+.status-value {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stamp-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.btn-clock-in {
+  background: #2ec4b6;
+  color: #fff;
+  font-size: 18px;
+  padding: 16px 40px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.btn-clock-in:hover:not(:disabled) {
+  background: #25a99d;
+}
+
+.btn-clock-out {
+  background: #e63946;
+  color: #fff;
+  font-size: 18px;
+  padding: 16px 40px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.btn-clock-out:hover:not(:disabled) {
+  background: #c5303c;
+}
+
+/* Monthly Page */
+.monthly-container {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+}
+
+.monthly-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.month-nav h2 {
+  font-size: 20px;
+  min-width: 140px;
+  text-align: center;
+}
+
+.staff-select {
+  padding: 8px 12px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.monthly-summary {
+  margin-bottom: 16px;
+  font-size: 15px;
+  color: #444;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.monthly-table,
+.staff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.monthly-table th,
+.monthly-table td,
+.staff-table th,
+.staff-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e8e8e8;
+}
+
+.monthly-table th,
+.staff-table th {
+  background: #f8f9fa;
+  font-weight: 600;
+  font-size: 13px;
+  color: #666;
+}
+
+.monthly-table tr.sunday td {
+  color: #e63946;
+  background: #fff5f5;
+}
+
+.monthly-table tr.saturday td {
+  color: #4361ee;
+  background: #f0f3ff;
+}
+
+/* Admin Page */
+.admin-container {
+  max-width: 100%;
+}
+
+.admin-container h2 {
+  font-size: 22px;
+  margin-bottom: 20px;
+}
+
+.admin-section {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.admin-section h3 {
+  font-size: 16px;
+  margin-bottom: 16px;
+  color: #444;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.form-row .form-group {
+  margin-bottom: 0;
+}
+
+.admin-form .btn {
+  margin-top: 12px;
+}
+
+/* GPS Info */
+.gps-info {
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.gps-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.gps-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.gps-dot.active {
+  background: #2ec4b6;
+}
+
+.gps-dot.inactive {
+  background: #ccc;
+}
+
+.gps-distance {
+  font-weight: 500;
+  padding: 4px 0;
+}
+
+.gps-distance.in-range {
+  color: #155724;
+}
+
+.gps-distance.out-of-range {
+  color: #c5303c;
+}
+
+.gps-distance.neutral {
+  color: #888;
+}
+
+/* Location in Monthly Table */
+.loc-cell {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.loc-label {
+  color: #888;
+  font-size: 11px;
+  margin-right: 2px;
+}
+
+.loc-link {
+  display: inline-block;
+  background: #4361ee;
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  text-decoration: none;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.loc-link:hover {
+  background: #3a56d4;
+}
+
+.loc-none {
+  color: #ccc;
+}
+
+/* Store Location Form */
+.section-desc {
+  font-size: 13px;
+  color: #888;
+  margin-bottom: 16px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: #fff;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #5a6268;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .header {
+    flex-direction: column;
+    height: auto;
+    padding: 12px 16px;
+    gap: 8px;
+  }
+
+  .header-left {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .stamp-time {
+    font-size: 40px;
+  }
+
+  .stamp-buttons {
+    flex-direction: column;
+  }
+
+  .btn-clock-in,
+  .btn-clock-out {
+    width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
