@@ -113,6 +113,23 @@ router.get('/today', authenticate, async (req, res) => {
   }
 });
 
+router.get('/today-all', authenticate, async (req, res) => {
+  try {
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({ error: '管理者権限が必要です' });
+    }
+    const date = todayStr();
+    const records = await query(
+      'SELECT a.*, s.name as staff_name FROM attendance a JOIN staff s ON a.staff_id = s.id WHERE a.date = ? ORDER BY a.clock_in',
+      [date]
+    );
+    const allStaff = await query('SELECT id, name FROM staff ORDER BY id');
+    res.json({ date, records, allStaff });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/monthly', authenticate, async (req, res) => {
   try {
     const { year, month, staff_id } = req.query;

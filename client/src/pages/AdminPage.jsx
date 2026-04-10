@@ -19,15 +19,32 @@ export default function AdminPage() {
   const [storeSuccess, setStoreSuccess] = useState('');
   const [gettingLocation, setGettingLocation] = useState(false);
 
+  // 本日の勤怠
+  const [todayRecords, setTodayRecords] = useState([]);
+  const [todayAllStaff, setTodayAllStaff] = useState([]);
+  const [todayDate, setTodayDate] = useState('');
+
   useEffect(() => {
     fetchStaff();
     fetchStoreLocation();
+    fetchTodayAll();
   }, []);
 
   const fetchStaff = async () => {
     try {
       const res = await api.get('/staff');
       setStaffList(res.data.staff);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchTodayAll = async () => {
+    try {
+      const res = await api.get('/attendance/today-all');
+      setTodayRecords(res.data.records);
+      setTodayAllStaff(res.data.allStaff);
+      setTodayDate(res.data.date);
     } catch (err) {
       console.error(err);
     }
@@ -115,12 +132,66 @@ export default function AdminPage() {
     }
   };
 
+  const makeMapUrl = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
+
+  const recordMap = {};
+  todayRecords.forEach(r => { recordMap[r.staff_id] = r; });
+
   return (
     <div className="admin-container">
       <h2>スタッフ管理</h2>
 
       {error && <div className="error-msg">{error}</div>}
       {success && <div className="success-msg">{success}</div>}
+
+      <div className="admin-section">
+        <h3>本日の出勤状況（{todayDate}）</h3>
+        <div className="table-wrapper">
+          <table className="staff-table">
+            <thead>
+              <tr>
+                <th>名前</th>
+                <th>出勤</th>
+                <th>出勤場所</th>
+                <th>退勤</th>
+                <th>退勤場所</th>
+                <th>状態</th>
+              </tr>
+            </thead>
+            <tbody>
+              {todayAllStaff.map(s => {
+                const rec = recordMap[s.id];
+                let status = '未出勤';
+                let statusClass = 'status-absent';
+                if (rec?.clock_out) { status = '退勤済'; statusClass = 'status-done'; }
+                else if (rec?.clock_in) { status = '勤務中'; statusClass = 'status-working'; }
+                return (
+                  <tr key={s.id}>
+                    <td><strong>{s.name}</strong></td>
+                    <td>{rec?.clock_in || '--:--'}</td>
+                    <td>
+                      {rec?.clock_in_lat ? (
+                        <a href={makeMapUrl(rec.clock_in_lat, rec.clock_in_lng)} target="_blank" rel="noopener noreferrer" className="loc-link">MAP</a>
+                      ) : rec?.clock_in ? <span className="loc-none">位置なし</span> : ''}
+                    </td>
+                    <td>{rec?.clock_out || '--:--'}</td>
+                    <td>
+                      {rec?.clock_out_lat ? (
+                        <a href={makeMapUrl(rec.clock_out_lat, rec.clock_out_lng)} target="_blank" rel="noopener noreferrer" className="loc-link">MAP</a>
+                      ) : rec?.clock_out ? <span className="loc-none">位置なし</span> : ''}
+                    </td>
+                    <td><span className={`status-badge ${statusClass}`}>{status}</span></td>
+                  </tr>
+                );
+              })}
+              {todayAllStaff.length === 0 && (
+                <tr><td colSpan="6" style={{textAlign:'center',color:'#888'}}>スタッフがいません</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+        <button onClick={fetchTodayAll} className="btn btn-sm" style={{marginTop:'12px'}}>更新</button>
+      </div>
 
       <div className="admin-section">
         <h3>スタッフ追加</h3>
