@@ -14,6 +14,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// ヘルスチェック（Renderのポート検出用）
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/staff', staffRoutes);
@@ -21,9 +24,10 @@ app.use('/api/store-location', storeLocationRoutes);
 
 // 本番環境: Reactビルド済みファイルを配信
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
+  const distPath = path.join(__dirname, '../client/dist');
+  app.use(express.static(distPath));
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    res.sendFile(path.join(distPath, 'index.html'));
   });
 }
 
@@ -40,8 +44,11 @@ async function seedAdmin() {
 async function start() {
   await initDb();
   await seedAdmin();
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`サーバー起動: http://localhost:${PORT}`);
+  const server = app.listen(PORT, () => {
+    console.log(`サーバー起動: ポート ${PORT}`);
+  });
+  server.on('error', (err) => {
+    console.error('サーバーエラー:', err);
   });
 }
 
