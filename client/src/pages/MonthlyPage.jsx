@@ -2,14 +2,23 @@ import { useState, useEffect } from 'react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 
-function calcWorkHours(clockIn, clockOut) {
+function parseTime(t) {
+  if (!t) return null;
+  const [h, m, s] = t.split(':').map(Number);
+  return h * 60 + m + (s || 0) / 60;
+}
+
+function calcWorkHours(clockIn, clockOut, breakStart, breakEnd) {
   if (!clockIn || !clockOut) return null;
-  const [h1, m1, s1] = clockIn.split(':').map(Number);
-  const [h2, m2, s2] = clockOut.split(':').map(Number);
-  const totalMin = (h2 * 60 + m2 + s2 / 60) - (h1 * 60 + m1 + s1 / 60);
-  const hours = Math.floor(totalMin / 60);
-  const mins = Math.round(totalMin % 60);
-  return { hours, mins, totalMin };
+  const totalMin = parseTime(clockOut) - parseTime(clockIn);
+  let breakMin = 0;
+  if (breakStart && breakEnd) {
+    breakMin = parseTime(breakEnd) - parseTime(breakStart);
+  }
+  const netMin = totalMin - breakMin;
+  const hours = Math.floor(netMin / 60);
+  const mins = Math.round(netMin % 60);
+  return { hours, mins, totalMin: netMin, breakMin };
 }
 
 function LocationBadge({ lat, lng }) {
@@ -61,18 +70,24 @@ export default function MonthlyPage() {
   records.forEach(r => { recordMap[r.date] = r; });
 
   let totalMinutes = 0;
+  let totalBreakMin = 0;
   const rows = [];
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const dayOfWeek = new Date(year, month - 1, d).getDay();
     const rec = recordMap[dateStr];
-    const work = rec ? calcWorkHours(rec.clock_in, rec.clock_out) : null;
-    if (work) totalMinutes += work.totalMin;
+    const work = rec ? calcWorkHours(rec.clock_in, rec.clock_out, rec.break_start, rec.break_end) : null;
+    if (work) {
+      totalMinutes += work.totalMin;
+      totalBreakMin += work.breakMin;
+    }
     rows.push({ d, dateStr, dayOfWeek, rec, work });
   }
 
   const totalH = Math.floor(totalMinutes / 60);
   const totalM = Math.round(totalMinutes % 60);
+  const totalBreakH = Math.floor(totalBreakMin / 60);
+  const totalBreakM = Math.round(totalBreakMin % 60);
 
   const prevMonth = () => {
     if (month === 1) { setYear(year - 1); setMonth(12); }
@@ -81,6 +96,15 @@ export default function MonthlyPage() {
   const nextMonth = () => {
     if (month === 12) { setYear(year + 1); setMonth(1); }
     else setMonth(month + 1);
+  };
+
+  const formatBreak = (start, end) => {
+    if (!start) return '';
+    if (!end) return `${start}〜`;
+    const mins = parseTime(end) - parseTime(start);
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    return h > 0 ? `${h}時間${m}分` : `${m}分`;
   };
 
   return (
@@ -103,6 +127,7 @@ export default function MonthlyPage() {
 
       <div className="monthly-summary">
         合計勤務時間: <strong>{totalH}時間 {totalM}分</strong>
+        {totalBreakMin > 0 && <span>（休憩合計: {totalBreakH}時間 {totalBreakM}分）</span>}
       </div>
 
       <div className="table-wrapper">
@@ -113,6 +138,7 @@ export default function MonthlyPage() {
               <th>曜日</th>
               <th>出勤</th>
               <th>退勤</th>
+              <th>休憩</th>
               <th>勤務時間</th>
               {user.role === 'admin' && <th>位置</th>}
             </tr>
@@ -124,6 +150,7 @@ export default function MonthlyPage() {
                 <td>{dayNames[dayOfWeek]}</td>
                 <td>{rec?.clock_in || ''}</td>
                 <td>{rec?.clock_out || ''}</td>
+                <td>{rec ? formatBreak(rec.break_start, rec.break_end) : ''}</td>
                 <td>{work ? `${work.hours}時間${work.mins}分` : ''}</td>
                 {user.role === 'admin' && (
                   <td className="loc-cell">

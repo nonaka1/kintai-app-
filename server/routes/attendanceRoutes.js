@@ -103,6 +103,53 @@ router.post('/clock-out', authenticate, async (req, res) => {
   }
 });
 
+router.post('/break-start', authenticate, async (req, res) => {
+  try {
+    const date = todayStr();
+    const time = nowTimeStr();
+
+    const existing = await queryOne('SELECT * FROM attendance WHERE staff_id = ? AND date = ?', [req.user.id, date]);
+    if (!existing || !existing.clock_in) {
+      return res.status(400).json({ error: '出勤打刻がありません' });
+    }
+    if (existing.clock_out) {
+      return res.status(400).json({ error: 'すでに退勤済みです' });
+    }
+    if (existing.break_start && !existing.break_end) {
+      return res.status(400).json({ error: 'すでに休憩中です' });
+    }
+
+    await run('UPDATE attendance SET break_start = ?, break_end = NULL WHERE staff_id = ? AND date = ?',
+      [time, req.user.id, date]);
+
+    res.json({ message: '休憩開始しました', break_start: time, date });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/break-end', authenticate, async (req, res) => {
+  try {
+    const date = todayStr();
+    const time = nowTimeStr();
+
+    const existing = await queryOne('SELECT * FROM attendance WHERE staff_id = ? AND date = ?', [req.user.id, date]);
+    if (!existing || !existing.break_start) {
+      return res.status(400).json({ error: '休憩が開始されていません' });
+    }
+    if (existing.break_end) {
+      return res.status(400).json({ error: 'すでに休憩終了済みです' });
+    }
+
+    await run('UPDATE attendance SET break_end = ? WHERE staff_id = ? AND date = ?',
+      [time, req.user.id, date]);
+
+    res.json({ message: '休憩終了しました', break_end: time, date });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/today', authenticate, async (req, res) => {
   try {
     const date = todayStr();

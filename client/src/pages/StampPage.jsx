@@ -49,38 +49,27 @@ export default function StampPage() {
       setGpsStatus('GPS非対応');
       return;
     }
-
     const updatePosition = (pos) => {
       const { latitude, longitude, accuracy } = pos.coords;
       setPosition({ latitude, longitude, accuracy });
       setGpsStatus(`取得済み（精度: ${Math.round(accuracy)}m）`);
     };
-
     const handleError = (err) => {
       if (err.code === 1) setGpsStatus('位置情報の許可が必要です');
       else if (err.code === 2) setGpsStatus('位置情報を取得できません');
       else setGpsStatus('位置情報の取得がタイムアウトしました');
     };
-
     navigator.geolocation.getCurrentPosition(updatePosition, handleError, {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 30000
+      enableHighAccuracy: true, timeout: 10000, maximumAge: 30000
     });
-
     navigator.geolocation.watchPosition(updatePosition, handleError, {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 30000
+      enableHighAccuracy: true, timeout: 10000, maximumAge: 30000
     });
   };
 
   useEffect(() => {
     if (position && storeLocation) {
-      const d = haversineDistance(
-        position.latitude, position.longitude,
-        storeLocation.latitude, storeLocation.longitude
-      );
+      const d = haversineDistance(position.latitude, position.longitude, storeLocation.latitude, storeLocation.longitude);
       setDistance(Math.round(d));
     } else {
       setDistance(null);
@@ -96,7 +85,7 @@ export default function StampPage() {
     }
   };
 
-  const handleClockIn = async () => {
+  const handleAction = async (endpoint) => {
     setLoading(true);
     setMessage('');
     setError('');
@@ -106,7 +95,7 @@ export default function StampPage() {
         body.latitude = position.latitude;
         body.longitude = position.longitude;
       }
-      const res = await api.post('/attendance/clock-in', body);
+      const res = await api.post(`/attendance/${endpoint}`, body);
       setMessage(res.data.message);
       fetchToday();
     } catch (err) {
@@ -116,36 +105,13 @@ export default function StampPage() {
     }
   };
 
-  const handleClockOut = async () => {
-    setLoading(true);
-    setMessage('');
-    setError('');
-    try {
-      const body = {};
-      if (position) {
-        body.latitude = position.latitude;
-        body.longitude = position.longitude;
-      }
-      const res = await api.post('/attendance/clock-out', body);
-      setMessage(res.data.message);
-      fetchToday();
-    } catch (err) {
-      setError(err.response?.data?.error || '打刻に失敗しました');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const formatTime = (date) => {
-    return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  };
-
-  const formatDate = (date) => {
-    return date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-  };
+  const formatTime = (date) => date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const formatDate = (date) => date.toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
   const hasClockedIn = todayRecord?.clock_in;
   const hasClockedOut = todayRecord?.clock_out;
+  const isOnBreak = todayRecord?.break_start && !todayRecord?.break_end;
+  const hasBreakEnded = todayRecord?.break_start && todayRecord?.break_end;
   const isInRange = storeLocation ? (distance !== null && distance <= storeLocation.radius) : true;
 
   return (
@@ -166,10 +132,7 @@ export default function StampPage() {
           {storeLocation && distance !== null && (
             <div className={`gps-distance ${isInRange ? 'in-range' : 'out-of-range'}`}>
               {storeLocation.name}まで: {distance}m
-              {isInRange
-                ? ` (範囲内 - ${storeLocation.radius}m以内)`
-                : ` (範囲外 - ${storeLocation.radius}m以内で打刻可能)`
-              }
+              {isInRange ? ` (範囲内)` : ` (範囲外 - ${storeLocation.radius}m以内で打刻可能)`}
             </div>
           )}
           {!storeLocation && (
@@ -183,6 +146,14 @@ export default function StampPage() {
             <span className="status-value">{hasClockedIn || '--:--:--'}</span>
           </div>
           <div className="status-item">
+            <span className="status-label">休憩</span>
+            <span className="status-value">{todayRecord?.break_start || '--:--:--'}</span>
+          </div>
+          <div className="status-item">
+            <span className="status-label">戻り</span>
+            <span className="status-value">{todayRecord?.break_end || '--:--:--'}</span>
+          </div>
+          <div className="status-item">
             <span className="status-label">退勤</span>
             <span className="status-value">{hasClockedOut || '--:--:--'}</span>
           </div>
@@ -190,16 +161,30 @@ export default function StampPage() {
 
         <div className="stamp-buttons">
           <button
-            onClick={handleClockIn}
+            onClick={() => handleAction('clock-in')}
             className="btn btn-clock-in"
             disabled={loading || hasClockedIn || (!isInRange && storeLocation)}
           >
             出勤
           </button>
           <button
-            onClick={handleClockOut}
+            onClick={() => handleAction('break-start')}
+            className="btn btn-break-start"
+            disabled={loading || !hasClockedIn || hasClockedOut || isOnBreak || (!isInRange && storeLocation)}
+          >
+            休憩
+          </button>
+          <button
+            onClick={() => handleAction('break-end')}
+            className="btn btn-break-end"
+            disabled={loading || !isOnBreak}
+          >
+            戻り
+          </button>
+          <button
+            onClick={() => handleAction('clock-out')}
             className="btn btn-clock-out"
-            disabled={loading || !hasClockedIn || hasClockedOut || (!isInRange && storeLocation)}
+            disabled={loading || !hasClockedIn || hasClockedOut || isOnBreak || (!isInRange && storeLocation)}
           >
             退勤
           </button>

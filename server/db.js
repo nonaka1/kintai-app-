@@ -39,9 +39,15 @@ async function initPostgres() {
       clock_in_lng DOUBLE PRECISION,
       clock_out_lat DOUBLE PRECISION,
       clock_out_lng DOUBLE PRECISION,
+      break_start TEXT,
+      break_end TEXT,
       UNIQUE(staff_id, date)
     )
   `);
+
+  // マイグレーション: 既存テーブルにカラム追加
+  try { await pgPool.query('ALTER TABLE attendance ADD COLUMN break_start TEXT'); } catch {}
+  try { await pgPool.query('ALTER TABLE attendance ADD COLUMN break_end TEXT'); } catch {}
 
   await pgPool.query(`
     CREATE TABLE IF NOT EXISTS store_location (
@@ -88,6 +94,8 @@ async function initSqlite() {
       clock_in_lng REAL,
       clock_out_lat REAL,
       clock_out_lng REAL,
+      break_start TEXT,
+      break_end TEXT,
       FOREIGN KEY (staff_id) REFERENCES staff(id),
       UNIQUE(staff_id, date)
     )
@@ -97,6 +105,8 @@ async function initSqlite() {
   try { db.run('ALTER TABLE attendance ADD COLUMN clock_in_lng REAL'); } catch {}
   try { db.run('ALTER TABLE attendance ADD COLUMN clock_out_lat REAL'); } catch {}
   try { db.run('ALTER TABLE attendance ADD COLUMN clock_out_lng REAL'); } catch {}
+  try { db.run('ALTER TABLE attendance ADD COLUMN break_start TEXT'); } catch {}
+  try { db.run('ALTER TABLE attendance ADD COLUMN break_end TEXT'); } catch {}
 
   db.run(`
     CREATE TABLE IF NOT EXISTS store_location (

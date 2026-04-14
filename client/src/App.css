@@ -299,6 +299,32 @@ body {
   background: #c5303c;
 }
 
+.btn-break-start {
+  background: #f59e0b;
+  color: #fff;
+  font-size: 18px;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.btn-break-start:hover:not(:disabled) {
+  background: #d97706;
+}
+
+.btn-break-end {
+  background: #4361ee;
+  color: #fff;
+  font-size: 18px;
+  padding: 16px 32px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.btn-break-end:hover:not(:disabled) {
+  background: #3a56d4;
+}
+
 /* Monthly Page */
 .monthly-container {
   background: #fff;
@@ -547,6 +573,11 @@ body {
   color: #c5303c;
 }
 
+.status-break {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .header {
@@ -570,7 +601,9 @@ body {
   }
 
   .btn-clock-in,
-  .btn-clock-out {
+  .btn-clock-out,
+  .btn-break-start,
+  .btn-break-end {
     width: 100%;
   }
 

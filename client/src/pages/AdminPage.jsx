@@ -153,6 +153,8 @@ export default function AdminPage() {
                 <th>名前</th>
                 <th>出勤</th>
                 <th>出勤場所</th>
+                <th>休憩</th>
+                <th>戻り</th>
                 <th>退勤</th>
                 <th>退勤場所</th>
                 <th>状態</th>
@@ -164,6 +166,7 @@ export default function AdminPage() {
                 let status = '未出勤';
                 let statusClass = 'status-absent';
                 if (rec?.clock_out) { status = '退勤済'; statusClass = 'status-done'; }
+                else if (rec?.break_start && !rec?.break_end) { status = '休憩中'; statusClass = 'status-break'; }
                 else if (rec?.clock_in) { status = '勤務中'; statusClass = 'status-working'; }
                 return (
                   <tr key={s.id}>
@@ -174,6 +177,8 @@ export default function AdminPage() {
                         <a href={makeMapUrl(rec.clock_in_lat, rec.clock_in_lng)} target="_blank" rel="noopener noreferrer" className="loc-link">MAP</a>
                       ) : rec?.clock_in ? <span className="loc-none">位置なし</span> : ''}
                     </td>
+                    <td>{rec?.break_start || '--:--'}</td>
+                    <td>{rec?.break_end || '--:--'}</td>
                     <td>{rec?.clock_out || '--:--'}</td>
                     <td>
                       {rec?.clock_out_lat ? (
@@ -185,7 +190,7 @@ export default function AdminPage() {
                 );
               })}
               {todayAllStaff.length === 0 && (
-                <tr><td colSpan="6" style={{textAlign:'center',color:'#888'}}>スタッフがいません</td></tr>
+                <tr><td colSpan="8" style={{textAlign:'center',color:'#888'}}>スタッフがいません</td></tr>
               )}
             </tbody>
           </table>
