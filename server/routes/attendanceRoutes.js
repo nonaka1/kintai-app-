@@ -4,15 +4,19 @@ const { authenticate } = require('../auth');
 
 const router = express.Router();
 
+function jstNow() {
+  return new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo' }));
+}
+
 function todayStr() {
-  const now = new Date();
+  const now = jstNow();
   return now.getFullYear() + '-' +
     String(now.getMonth() + 1).padStart(2, '0') + '-' +
     String(now.getDate()).padStart(2, '0');
 }
 
 function nowTimeStr() {
-  const now = new Date();
+  const now = jstNow();
   return String(now.getHours()).padStart(2, '0') + ':' +
     String(now.getMinutes()).padStart(2, '0') + ':' +
     String(now.getSeconds()).padStart(2, '0');
