@@ -32,11 +32,25 @@ function haversineDistance(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-async function checkGeofence(latitude, longitude) {
-  const store = await queryOne('SELECT * FROM store_location WHERE id = 1');
-  if (!store) return { ok: true, distance: null, store: null };
-  const distance = haversineDistance(latitude, longitude, store.latitude, store.longitude);
-  return { ok: distance <= store.radius, distance: Math.round(distance), store };
+async function checkGeofence(staffId, latitude, longitude) {
+  // スタッフが所属する全店舗を取得
+  const stores = await query(
+    'SELECT s.* FROM stores s JOIN staff_stores ss ON s.id = ss.store_id WHERE ss.staff_id = ?',
+    [staffId]
+  );
+  if (stores.length === 0) {
+    return { ok: true, distance: null, store: null };
+  }
+
+  // 全店舗で距離を計算し、最も近い店舗を見つける
+  let closest = null;
+  for (const s of stores) {
+    const d = haversineDistance(latitude, longitude, s.latitude, s.longitude);
+    if (!closest || d < closest.distance) closest = { store: s, distance: Math.round(d) };
+  }
+
+  const ok = closest.distance <= closest.store.radius;
+  return { ok, distance: closest.distance, store: closest.store };
 }
 
 router.post('/clock-in', authenticate, async (req, res) => {
@@ -46,10 +60,10 @@ router.post('/clock-in', authenticate, async (req, res) => {
     const { latitude, longitude } = req.body;
 
     if (latitude != null && longitude != null) {
-      const geo = await checkGeofence(latitude, longitude);
+      const geo = await checkGeofence(req.user.id, latitude, longitude);
       if (!geo.ok) {
         return res.status(403).json({
-          error: `店舗の範囲外です（${geo.distance}m / 許容${geo.store.radius}m）`,
+          error: `${geo.store.name}の範囲外です（${geo.distance}m / 許容${geo.store.radius}m）`,
           distance: geo.distance, radius: geo.store.radius
         });
       }
@@ -81,10 +95,10 @@ router.post('/clock-out', authenticate, async (req, res) => {
     const { latitude, longitude } = req.body;
 
     if (latitude != null && longitude != null) {
-      const geo = await checkGeofence(latitude, longitude);
+      const geo = await checkGeofence(req.user.id, latitude, longitude);
       if (!geo.ok) {
         return res.status(403).json({
-          error: `店舗の範囲外です（${geo.distance}m / 許容${geo.store.radius}m）`,
+          error: `${geo.store.name}の範囲外です（${geo.distance}m / 許容${geo.store.radius}m）`,
           distance: geo.distance, radius: geo.store.radius
         });
       }

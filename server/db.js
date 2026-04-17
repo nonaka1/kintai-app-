@@ -58,6 +58,43 @@ async function initPostgres() {
       name TEXT DEFAULT '店舗'
     )
   `);
+
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS stores (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      latitude DOUBLE PRECISION NOT NULL,
+      longitude DOUBLE PRECISION NOT NULL,
+      radius INTEGER NOT NULL DEFAULT 200
+    )
+  `);
+
+  await pgPool.query(`
+    CREATE TABLE IF NOT EXISTS staff_stores (
+      staff_id INTEGER NOT NULL,
+      store_id INTEGER NOT NULL,
+      PRIMARY KEY (staff_id, store_id)
+    )
+  `);
+
+  // マイグレーション: 既存の store_location → stores へ
+  const sCount = await pgPool.query('SELECT COUNT(*) as c FROM stores');
+  if (Number(sCount.rows[0].c) === 0) {
+    const oldStore = await pgPool.query('SELECT * FROM store_location WHERE id = 1');
+    if (oldStore.rows[0]) {
+      const o = oldStore.rows[0];
+      const inserted = await pgPool.query(
+        'INSERT INTO stores (name, latitude, longitude, radius) VALUES ($1, $2, $3, $4) RETURNING id',
+        [o.name || '店舗', o.latitude, o.longitude, o.radius || 200]
+      );
+      const newStoreId = inserted.rows[0].id;
+      // 全スタッフを新店舗に割り当て
+      await pgPool.query(
+        'INSERT INTO staff_stores (staff_id, store_id) SELECT id, $1 FROM staff ON CONFLICT DO NOTHING',
+        [newStoreId]
+      );
+    }
+  }
 }
 
 // --- SQLite ---
@@ -117,6 +154,44 @@ async function initSqlite() {
       name TEXT DEFAULT '店舗'
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS stores (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      latitude REAL NOT NULL,
+      longitude REAL NOT NULL,
+      radius INTEGER NOT NULL DEFAULT 200
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS staff_stores (
+      staff_id INTEGER NOT NULL,
+      store_id INTEGER NOT NULL,
+      PRIMARY KEY (staff_id, store_id)
+    )
+  `);
+
+  // マイグレーション: 既存の store_location → stores へ
+  try {
+    const stmt = db.prepare('SELECT COUNT(*) as c FROM stores');
+    stmt.step();
+    const { c } = stmt.getAsObject();
+    stmt.free();
+    if (c === 0) {
+      const oldStmt = db.prepare('SELECT * FROM store_location WHERE id = 1');
+      if (oldStmt.step()) {
+        const o = oldStmt.getAsObject();
+        oldStmt.free();
+        db.run('INSERT INTO stores (name, latitude, longitude, radius) VALUES (?, ?, ?, ?)',
+          [o.name || '店舗', o.latitude, o.longitude, o.radius || 200]);
+        db.run('INSERT OR IGNORE INTO staff_stores (staff_id, store_id) SELECT id, last_insert_rowid() FROM staff');
+      } else {
+        oldStmt.free();
+      }
+    }
+  } catch (e) { console.error('migration error:', e); }
 
   saveSqlite();
 }

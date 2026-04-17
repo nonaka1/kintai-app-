@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const attendanceRoutes = require('./routes/attendanceRoutes');
 const staffRoutes = require('./routes/staffRoutes');
 const storeLocationRoutes = require('./routes/storeLocationRoutes');
+const storesRoutes = require('./routes/storesRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -21,6 +22,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/staff', staffRoutes);
 app.use('/api/store-location', storeLocationRoutes);
+app.use('/api/stores', storesRoutes);
 
 // 本番環境: Reactビルド済みファイルを配信
 if (process.env.NODE_ENV === 'production') {
